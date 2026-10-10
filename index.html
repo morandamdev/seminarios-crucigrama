@@ -6,7 +6,7 @@
     <title>Crucigrama Interactivo</title>
     <style>
         :root {
-            --cell-size: 38px;
+            --cell-size: 34px;
             --primary-color: #3b82f6;
             --success-color: #22c55e;
             --error-color: #ef4444;
@@ -36,7 +36,7 @@
             max-width: 900px;
             background: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
             padding: 15px;
             box-sizing: border-box;
             display: flex;
@@ -44,7 +44,6 @@
             gap: 20px;
         }
 
-        /* Contenedor del tablero con scroll horizontal para móviles */
         .grid-scroll-wrapper {
             width: 100%;
             overflow-x: auto;
@@ -55,73 +54,127 @@
         .crossword-grid {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            min-width: 600px; /* Asegura que no se aprieten las celdas en pantallas chicas */
+            gap: 3px;
+            width: max-content;
+            margin: 0 auto;
         }
 
         .grid-row {
             display: flex;
-            align-items: center;
-            gap: 4px;
+            gap: 3px;
+        }
+
+        .slot {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            flex-shrink: 0;
+            box-sizing: border-box;
         }
 
         .row-number {
-            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 4px;
             font-weight: bold;
-            font-size: 0.85rem;
-            text-align: right;
-            flex-shrink: 0;
+            font-size: 0.9rem;
             color: #475569;
         }
 
         .cell {
-            width: var(--cell-size);
-            height: var(--cell-size);
             background-color: #ffffff;
             border: 2px solid #cbd5e1;
             border-radius: 6px;
             text-align: center;
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: bold;
             text-transform: uppercase;
             outline: none;
             caret-color: var(--primary-color);
-            box-sizing: border-box;
             padding: 0;
             transition: border-color 0.2s, background-color 0.2s;
-            flex-shrink: 0;
         }
 
         .cell:focus {
             border-color: var(--primary-color);
             background-color: #eff6ff;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
         }
 
-        .cell.disabled {
-            background-color: #f1f5f9;
-            color: #475569;
+        /* Letras de pista que ya vienen impresas */
+        .cell.hint {
+            background-color: #e2e8f0;
+            color: #334155;
             border-color: #94a3b8;
             cursor: default;
         }
 
-        .cell.empty-space {
-            background-color: transparent;
-            border: none;
-            pointer-events: none;
-        }
-
-        /* Columna vertical destacada (letra O de la palabra secreta) */
+        /* Columna secreta (gris) */
         .cell.secret-col {
-            background-color: #fef08a !important;
-            border-color: #eab308 !important;
+            background-color: #fde68a;
+            border-color: #eab308;
         }
-        .cell.secret-col.disabled {
-            background-color: #fef08a !important;
-            color: #854d0e !important;
+        .cell.secret-col.hint {
+            background-color: #fcd34d;
+            color: #78350f;
         }
 
-        /* Panel de botones de control */
+        /* Frase secreta */
+        .secret-box {
+            text-align: center;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 15px;
+        }
+        .secret-box h2 {
+            font-size: 1.05rem;
+            margin: 0 0 4px;
+            color: #334155;
+        }
+        .secret-box p {
+            margin: 0 0 12px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .phrase {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px 18px;
+        }
+        .phrase-word {
+            display: flex;
+            gap: 3px;
+        }
+        .phrase-letter {
+            width: 30px;
+            height: 34px;
+            border: 2px solid #eab308;
+            background: #fef9c3;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.05rem;
+            color: #78350f;
+            box-sizing: border-box;
+        }
+        .phrase.complete .phrase-letter {
+            background: #bbf7d0;
+            border-color: var(--success-color);
+            color: #14532d;
+        }
+
+        .status {
+            min-height: 1.4em;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .status.ok { color: #15803d; }
+        .status.bad { color: #b91c1c; }
+        .status.info { color: #475569; }
+
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -138,62 +191,38 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
         }
+        button:active { transform: scale(0.98); }
 
-        button:active {
-            transform: scale(0.98);
-        }
-
-        .btn-check {
-            background-color: var(--primary-color);
-            color: white;
-        }
+        .btn-check { background-color: var(--primary-color); color: white; }
         .btn-check:hover { background-color: #2563eb; }
-
-        .btn-clear {
-            background-color: #e2e8f0;
-            color: #475569;
-        }
+        .btn-clear { background-color: #e2e8f0; color: #475569; }
         .btn-clear:hover { background-color: #cbd5e1; }
 
-        .btn-reveal {
-            background-color: #8b5cf6;
-            color: white;
-        }
-        .btn-reveal:hover { background-color: #7c3aed; }
-
-        /* Lista de pistas */
         .clues-section {
             border-top: 2px solid #e2e8f0;
             padding-top: 15px;
         }
-
         .clues-section h2 {
             font-size: 1.1rem;
             margin-top: 0;
             margin-bottom: 10px;
             color: #334155;
         }
-
         .clues-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 8px;
             font-size: 0.9rem;
         }
-
         @media (min-width: 640px) {
-            .clues-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .clues-grid { grid-template-columns: repeat(2, 1fr); }
         }
-
         .clue-item {
             background: #f8fafc;
             padding: 8px 12px;
             border-radius: 6px;
             border: 1px solid #e2e8f0;
         }
-
         .clue-num {
             font-weight: bold;
             color: var(--primary-color);
@@ -205,22 +234,24 @@
 
     <div class="game-container">
         <h1>Crucigrama Familiar</h1>
-        
-        <!-- Tablero de juego adaptativo -->
+
         <div class="grid-scroll-wrapper">
-            <div class="crossword-grid" id="crosswordGrid">
-                <!-- Se genera dinámicamente mediante JavaScript -->
-            </div>
+            <div class="crossword-grid" id="crosswordGrid"></div>
         </div>
 
-        <!-- Botones de control -->
+        <div class="status info" id="status"></div>
+
         <div class="controls">
             <button class="btn-check" onclick="checkAnswers()">Comprobar respuestas</button>
             <button class="btn-clear" onclick="clearBoard()">Limpiar tablero</button>
-            <button class="btn-reveal" onclick="revealAnswers()">Mostrar solución</button>
         </div>
 
-        <!-- Pistas del crucigrama -->
+        <div class="secret-box">
+            <h2>Frase escondida</h2>
+            <p>Se forma con las letras de la columna amarilla, de arriba hacia abajo.</p>
+            <div class="phrase" id="phrase"></div>
+        </div>
+
         <div class="clues-section">
             <h2>Pistas</h2>
             <div class="clues-grid">
@@ -234,7 +265,7 @@
                 <div class="clue-item"><span class="clue-num">8.</span> Del Espíritu Santo recibimos _______.</div>
                 <div class="clue-item"><span class="clue-num">9.</span> Ayudar a los demás con amor.</div>
                 <div class="clue-item"><span class="clue-num">10.</span> Personas de anteriores generaciones.</div>
-                <div class="clue-item"><span class="clue-num">11.</span> El bautismo es una __ sagrada.</div>
+                <div class="clue-item"><span class="clue-num">11.</span> El bautismo es una ___ sagrada.</div>
                 <div class="clue-item"><span class="clue-num">12.</span> Sentimiento que recibimos al servir a otros.</div>
                 <div class="clue-item"><span class="clue-num">13.</span> Somos hijos de Dios con una ___ divina.</div>
                 <div class="clue-item"><span class="clue-num">14.</span> Representación de nuestra línea familiar.</div>
@@ -243,136 +274,184 @@
     </div>
 
     <script>
-        // Definición exacta del crucigrama basada en tu imagen
-        // Estructura de cada fila:
-        // offset: casillas vacías al inicio
-        // word: la palabra correcta completa
-        // fixed: array con las posiciones fijas de pistas (índice local en la palabra) que ya vienen impresas
+        // secret: posición (0-indexada) de la letra que cae en la columna amarilla
+        // fixed: posiciones de letras que ya vienen impresas como pista en la imagen
         const rowsData = [
-            { id: 1,  offset: 4, word: "OBRERO", fixed: [2] },                     // Letra U en index 2 (tercera letra)
-            { id: 2,  offset: 1, word: "TEMPLO", fixed: [4] },                     // Letra O en index 4
-            { id: 3,  offset: 3, word: "HISTORIA", fixed: [2] },                    // Letra S en index 2
-            { id: 4,  offset: 3, word: "FAMILIA", fixed: [] },
-            { id: 5,  offset: 0, word: "GENEALOGIA", fixed: [0, 1] },              // Letras G, N en index 0 y 1
-            { id: 6,  offset: 3, word: "OBRA", fixed: [] },
-            { id: 7,  offset: 3, word: "HONRAR", fixed: [2] },                     // Letra O en index 2
-            { id: 8,  offset: 1, word:_getW8(), fixed: [1, 2] },                   // Fila 8: _ S P _ _ _ _ _
-            { id: 9,  offset: 3, word: "SERVIR", fixed: [] },
-            { id: 10, offset: 2, word: "ANCESTROS", fixed: [1] },                  // Letra T en index 1
-            { id: 11, offset: 3, word: "OBRA", fixed: [2] },                      // Letra N en index 2
-            { id: 12, offset: 0, word: "GOZO", fixed: [0, 2, 5] },                // Letras R, G, O 
-            { id: 13, offset: 0, word: "IDENTIDAD", fixed: [0, 2, 6] },           // Letras I, E, D
-            { id: 14, offset: 1, word: "ARBOL", fixed: [1] }                      // Letra B en index 1
+            { id: 1,  word: "AYUDAR",      secret: 1, fixed: [2] },        // _ Y U _ _ _
+            { id: 2,  word: "TEMPLO",      secret: 5, fixed: [5] },        // _ _ _ _ _ O
+            { id: 3,  word: "HISTORIA",    secret: 0, fixed: [2] },        // H _ S _ _ _ _ _
+            { id: 4,  word: "FAMILIA",     secret: 1, fixed: [] },
+            { id: 5,  word: "GENEALOGIA",  secret: 7, fixed: [0, 2] },     // G _ N _ _ _ _ G _ _
+            { id: 6,  word: "OBRA",        secret: 0, fixed: [] },
+            { id: 7,  word: "HONRAR",      secret: 0, fixed: [1] },        // H O _ _ _ _
+            { id: 8,  word: "INSPIRACION", secret: 4, fixed: [2, 3] },     // _ _ S P I _ _ _ _ _ _
+            { id: 9,  word: "SERVIR",      secret: 0, fixed: [] },
+            { id: 10, word: "ANTEPASADOS", secret: 2, fixed: [2] },        // _ _ T _ _ _ _ _ _ _ _
+            { id: 11, word: "ORDENANZA",   secret: 0, fixed: [4] },        // _ _ _ _ N _ _ _ _
+            { id: 12, word: "REGOCIJO",    secret: 0, fixed: [0, 2, 7] },  // R _ G _ _ _ _ O
+            { id: 13, word: "IDENTIDAD",   secret: 0, fixed: [0, 2, 8] },  // I _ E _ _ _ _ _ D
+            { id: 14, word: "ARBOL",       secret: 0, fixed: [2] }         // _ _ B _ _
         ];
 
-        // Función auxiliar para palabra 8 adaptada a longitud exacta
-        function _getW8() { return "INSPIRACION"; } // Ajustado según conteo de casillas de la imagen 8
+        // Frase escondida: YO HAGO HISTORIA
+        const SECRET_PHRASE = "YOHAGOHISTORIA";
+        const PHRASE_WORDS = [2, 4, 8]; // longitudes de cada palabra
 
-        // La columna vertical secreta global (formando P-R-O-S-P-E-R-I-D-A-D o alineada por índices)
-        // Mapeamos el índice horizontal exacto global (columna 7 o índice 6 absoluto) donde cae la barra vertical central.
-        // En nuestro generador, calculamos la posición absoluta basada en el offset y la intersección.
-        // Para que coincida perfectamente con la imagen, la columna vertical clave se encuentra en el índice absoluto 6 (0-indexed).
-        const SECRET_GLOBAL_COL = 6; 
+        // Columna absoluta (en la cuadrícula) de la columna amarilla
+        const maxSecret = Math.max(...rowsData.map(r => r.secret));
+        const SECRET_COL = maxSecret + 1; // +1 deja espacio para el número a la izquierda
 
         function buildGrid() {
             const container = document.getElementById('crosswordGrid');
             container.innerHTML = '';
 
+            const starts = rowsData.map(r => SECRET_COL - r.secret);
+            const totalCols = Math.max(...rowsData.map((r, i) => starts[i] + r.word.length));
+
             rowsData.forEach((row, rowIndex) => {
                 const rowEl = document.createElement('div');
                 rowEl.className = 'grid-row';
+                const start = starts[rowIndex];
 
-                // Número de fila indicador
-                const numEl = document.createElement('div');
-                numEl.className = 'row-number';
-                numEl.textContent = row.id;
-                rowEl.appendChild(numEl);
+                for (let col = 0; col < totalCols; col++) {
+                    const i = col - start;
 
-                // Celdas vacías a la izquierda (offset)
-                for (let i = 0; i < row.offset; i++) {
-                    const emptyCell = document.createElement('div');
-                    emptyCell.className = 'cell empty-space';
-                    rowEl.appendChild(emptyCell);
-                }
+                    if (col === start - 1) {
+                        const num = document.createElement('div');
+                        num.className = 'slot row-number';
+                        num.textContent = row.id;
+                        rowEl.appendChild(num);
+                    } else if (i >= 0 && i < row.word.length) {
+                        const cell = document.createElement('input');
+                        cell.type = 'text';
+                        cell.maxLength = 1;
+                        cell.autocomplete = 'off';
+                        cell.className = 'slot cell';
+                        cell.dataset.row = rowIndex;
+                        cell.dataset.col = i;
+                        cell.dataset.target = row.word[i];
 
-                // Celdas con letras de la palabra
-                for (let i = 0; i < row.word.length; i++) {
-                    const absoluteColIndex = row.offset + i;
-                    const cell = document.createElement('input');
-                    cell.type = 'text';
-                    cell.maxLength = 1;
-                    cell.className = 'cell';
-                    cell.dataset.row = rowIndex;
-                    cell.dataset.col = i;
-                    cell.dataset.target = row.word[i];
+                        if (i === row.secret) {
+                            cell.classList.add('secret-col');
+                            cell.dataset.secretRow = rowIndex;
+                        }
 
-                    // Si es parte de la columna vertical central, marcarla visualmente
-                    if (absoluteColIndex === SECRET_GLOBAL_COL) {
-                        cell.classList.add('secret-col');
-                    }
-
-                    // Si la celda es fija (viene dada por defecto como en la imagen)
-                    if (row.fixed.includes(i)) {
-                        cell.value = row.word[i];
-                        cell.disabled = true;
-                        cell.classList.add('disabled');
+                        if (row.fixed.includes(i)) {
+                            cell.value = row.word[i];
+                            cell.disabled = true;
+                            cell.classList.add('hint');
+                        } else {
+                            cell.addEventListener('input', (e) => handleInput(e, rowIndex, i));
+                            cell.addEventListener('keydown', (e) => handleKeyDown(e, rowIndex, i));
+                        }
+                        rowEl.appendChild(cell);
                     } else {
-                        // Eventos para facilitar la escritura fluida en móviles y PC
-                        cell.addEventListener('input', (e) => handleInput(e, rowIndex, i));
-                        cell.addEventListener('keydown', (e) => handleKeyDown(e, rowIndex, i));
+                        const empty = document.createElement('div');
+                        empty.className = 'slot';
+                        rowEl.appendChild(empty);
                     }
-
-                    rowEl.appendChild(cell);
                 }
-
                 container.appendChild(rowEl);
+            });
+
+            buildPhrase();
+            updatePhrase();
+        }
+
+        function buildPhrase() {
+            const phrase = document.getElementById('phrase');
+            phrase.innerHTML = '';
+            let idx = 0;
+            PHRASE_WORDS.forEach(len => {
+                const w = document.createElement('div');
+                w.className = 'phrase-word';
+                for (let k = 0; k < len; k++) {
+                    const l = document.createElement('div');
+                    l.className = 'phrase-letter';
+                    l.dataset.idx = idx++;
+                    w.appendChild(l);
+                }
+                phrase.appendChild(w);
             });
         }
 
-        // Navegación automática al escribir una letra
+        // Muestra en la frase las letras que hay escritas en la columna amarilla
+        function updatePhrase() {
+            let complete = true;
+            document.querySelectorAll('.phrase-letter').forEach(box => {
+                const rowIndex = Number(box.dataset.idx);
+                const cell = document.querySelector(`.cell[data-secret-row="${rowIndex}"]`);
+                const val = cell ? cell.value.toUpperCase() : '';
+                box.textContent = val;
+                if (val !== SECRET_PHRASE[rowIndex]) complete = false;
+            });
+            document.getElementById('phrase').classList.toggle('complete', complete);
+        }
+
         function handleInput(e, rowIndex, colIndex) {
             const input = e.target;
-            const val = input.value.toUpperCase();
-            input.value = val;
+            input.value = input.value.toUpperCase();
+            input.style.borderColor = '';
+            input.style.backgroundColor = '';
+            updatePhrase();
 
-            if (val.length === 1) {
-                // Buscar la siguiente celda editable en la misma fila
-                const currentRowInputs = document.querySelectorAll(`input[data-row="${rowIndex}"]`);
-                for (let i = colIndex + 1; i < currentRowInputs.length; i++) {
-                    if (!currentRowInputs[i].disabled) {
-                        currentRowInputs[i].focus();
+            if (input.value.length === 1) {
+                const rowInputs = document.querySelectorAll(`input[data-row="${rowIndex}"]`);
+                for (let i = colIndex + 1; i < rowInputs.length; i++) {
+                    if (!rowInputs[i].disabled) {
+                        rowInputs[i].focus();
                         break;
                     }
                 }
             }
         }
 
-        // Navegación con Backspace hacia atrás
         function handleKeyDown(e, rowIndex, colIndex) {
+            const rowInputs = document.querySelectorAll(`input[data-row="${rowIndex}"]`);
             if (e.key === 'Backspace' && e.target.value === '') {
-                const currentRowInputs = document.querySelectorAll(`input[data-row="${rowIndex}"]`);
                 for (let i = colIndex - 1; i >= 0; i--) {
-                    if (!currentRowInputs[i].disabled) {
-                        currentRowInputs[i].focus();
+                    if (!rowInputs[i].disabled) {
+                        rowInputs[i].focus();
                         break;
                     }
                 }
+            } else if (e.key === 'ArrowRight') {
+                for (let i = colIndex + 1; i < rowInputs.length; i++) {
+                    if (!rowInputs[i].disabled) { rowInputs[i].focus(); break; }
+                }
+            } else if (e.key === 'ArrowLeft') {
+                for (let i = colIndex - 1; i >= 0; i--) {
+                    if (!rowInputs[i].disabled) { rowInputs[i].focus(); break; }
+                }
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                const dir = e.key === 'ArrowDown' ? 1 : -1;
+                const target = SECRET_COL - rowsData[rowIndex].secret + colIndex; // columna absoluta
+                for (let r = rowIndex + dir; r >= 0 && r < rowsData.length; r += dir) {
+                    const i = target - (SECRET_COL - rowsData[r].secret);
+                    const c = document.querySelector(`input[data-row="${r}"][data-col="${i}"]`);
+                    if (c && !c.disabled) { c.focus(); break; }
+                }
+                e.preventDefault();
             }
         }
 
-        // Comprobar respuestas del usuario
+        function setStatus(msg, type) {
+            const s = document.getElementById('status');
+            s.textContent = msg;
+            s.className = 'status ' + type;
+        }
+
         function checkAnswers() {
-            const inputs = document.querySelectorAll('.cell:not(.empty-space)');
+            const inputs = document.querySelectorAll('.cell');
             let allCorrect = true;
-            let filledCount = 0;
+            let filled = 0;
 
             inputs.forEach(input => {
-                const expected = input.dataset.target;
+                if (input.disabled) return;
                 const current = input.value.toUpperCase();
-
                 if (current !== '') {
-                    filledCount++;
-                    if (current === expected) {
+                    filled++;
+                    if (current === input.dataset.target) {
                         input.style.borderColor = 'var(--success-color)';
                         input.style.backgroundColor = '#f0fdf4';
                     } else {
@@ -381,41 +460,31 @@
                         allCorrect = false;
                     }
                 } else {
-                    input.style.borderColor = '#cbd5e1';
+                    input.style.borderColor = '';
+                    input.style.backgroundColor = '';
                     allCorrect = false;
                 }
             });
 
-            if (filledCount === 0) {
-                alert('¡El tablero está vacío! Escribe algunas letras primero.');
+            if (filled === 0) {
+                setStatus('El tablero está vacío. ¡Escribe algunas letras primero!', 'info');
             } else if (allCorrect) {
-                alert('🎉 ¡Felicitaciones! Has completado el crucigrama correctamente.');
+                setStatus('🎉 ¡Felicitaciones! Completaste el crucigrama: "YO HAGO HISTORIA"', 'ok');
             } else {
-                alert('Hay algunos errores o casillas vacías marcadas en rojo. ¡Sigue intentando!');
+                setStatus('Hay errores (en rojo) o casillas vacías. ¡Sigue intentando!', 'bad');
             }
         }
 
-        // Limpiar tablero (resetea solo las casillas no bloqueadas)
         function clearBoard() {
-            const inputs = document.querySelectorAll('.cell:not(.empty-space):not(.disabled)');
-            inputs.forEach(input => {
+            document.querySelectorAll('.cell:not(.hint)').forEach(input => {
                 input.value = '';
-                input.style.borderColor = '#cbd5e1';
-                input.style.backgroundColor = '#ffffff';
-            });
-        }
-
-        // Revelar solución completa
-        function revealAnswers() {
-            const inputs = document.querySelectorAll('.cell:not(.empty-space)');
-            inputs.forEach(input => {
-                input.value = input.dataset.target;
-                input.style.borderColor = '#cbd5e1';
+                input.style.borderColor = '';
                 input.style.backgroundColor = '';
             });
+            setStatus('', 'info');
+            updatePhrase();
         }
 
-        // Inicializar al cargar la página
         window.onload = buildGrid;
     </script>
 </body>
